@@ -70,7 +70,7 @@ mkiso: all
 	echo '	multiboot2 /boot/kernel' >> ${SYSROOT}/boot/grub/grub.cfg
 	echo '	boot' >> ${SYSROOT}/boot/grub/grub.cfg
 	echo '}' >> ${SYSROOT}/boot/grub/grub.cfg
-	grub-mkrescue -o ${ISO} ${SYSROOT}
+	grub-mkrescue -o ${ISO} ${SYSROOT} > /dev/null
 
 clean:
 	$(MAKE) -C libc clean

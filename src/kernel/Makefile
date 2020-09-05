@@ -1,15 +1,17 @@
 LINKER_SCRIPT=linker.ld
-LIBC_DIRECTORY=../libc
 KERNEL_BIN="$(KERNEL_NAME).bin"
 
 CFLAGS := $(KERNEL_CFLAGS)
-CPPFLAGS := $(KERNEL_CPPFLAGS) -Iinclude/ -I$(LIBC_DIRECTORY)/include/
+CPPFLAGS := $(KERNEL_CPPFLAGS) -Iinclude/ -I$(SYSROOT)/usr/include/libc/
 LDFLAGS := $(KERNEL_LDFLAGS) -T $(LINKER_SCRIPT)
 ASFLAGS := $(KERNEL_ASFLAGS)
 
 KERNEL_OBJS=
+include make.config
 include amd64/make.config
 include boot/make.config
+include init/make.config
+KERNEL_OBJS += $(SYSROOT)/usr/bin/libk.o
 
 .PHONY: all install install-binary install-headers clean
 .SUFFIXES: .o .c .S .S.py

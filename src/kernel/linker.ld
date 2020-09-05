@@ -22,6 +22,7 @@ SECTIONS
 	.rodata ALIGN(4K) : AT(ADDR(.rodata) - KERNEL_OFFSET)
 	{
 		*(.rodata)
+		*(.early_boot_structs)
 	}
 	_kernel_data_end = .;
 
@@ -30,6 +31,5 @@ SECTIONS
 		*(COMMON)
 		*(.bss)
 	}
-
 	_kernel_end = .;
 }

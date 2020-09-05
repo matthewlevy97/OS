@@ -7,4 +7,4 @@ if [[ ! -f "${PREFIX}/bin/${TARGET}-ld" || ! -f "${PREFIX}/bin/${TARGET}-gcc" ]]
     exit 0
 fi
 
-make -C src mkiso
+make -C src all
