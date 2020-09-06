@@ -1,2 +1,3 @@
 # TODO
-- Setup output [printk]
+- Physical MM
+- Paging code (Virtual MM)

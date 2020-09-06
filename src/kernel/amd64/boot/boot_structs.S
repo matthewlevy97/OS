@@ -1,6 +1,10 @@
 #include <amd64/asm/paging.h>
 #include <amd64/asm/segments.h>
 
+#define GDT_PRESENT                    (1 << 15)
+#define GDT_CODE                       (3 << 11)
+#define GDT_LONG_MODE                  (1 << 21)
+
 .intel_syntax noprefix
 
 .section .early_boot_structs
@@ -41,7 +45,7 @@ boot_p1:
 .section .rodata
 .align 16
 boot_gdt:
-	.long 0, 0, 0, (GDT_PRESENT | GDT_CODE | GDT_LONG)
+	.long 0, 0, 0, (GDT_PRESENT | GDT_CODE | GDT_LONG_MODE)
 boot_gdt_ptr:
 	.short (2 * 8) - 1 /* Size of GDT Table - 1 */
 	.quad offset boot_gdt
