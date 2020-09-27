@@ -1,5 +1,5 @@
 #pragma once
 
-#include <boot/multiboot2.h>
+#include <init/multiboot.h>
 
-void kmain(multiboot_magic_t magic, multiboot_data_t multiboot_data);
+void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data);

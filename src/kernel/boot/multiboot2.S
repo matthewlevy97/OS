@@ -10,6 +10,11 @@
 	.long MULTIBOOT2_LENGTH
 	.long MULTIBOOT2_CHECKSUM
 
+	// Modules must be page aligned
+	.short 6
+	.short 0
+	.long  8
+
 	// Termination tag
 	.short 0 // type
 	.short 0 // flags

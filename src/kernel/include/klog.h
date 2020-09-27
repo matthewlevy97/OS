@@ -4,4 +4,4 @@
 
 int klog_init(void *buffer, size_t length);
 
-void klog(const char *msg);
+void klog(const char *fmt, ...);

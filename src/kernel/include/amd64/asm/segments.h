@@ -57,7 +57,7 @@
 
 #ifndef __ASSEMBLER__
 
-#include <amd64/asm/paging.h>
+#include <amd64/paging.h>
 #include <common.h>
 #include <stdint.h>
 

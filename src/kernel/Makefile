@@ -7,10 +7,18 @@ LDFLAGS := $(KERNEL_LDFLAGS) -T $(LINKER_SCRIPT)
 ASFLAGS := $(KERNEL_ASFLAGS)
 
 KERNEL_OBJS=
+
+ifeq ($(RUN_UNITTESTS), 1)
+CFLAGS += -DRUN_UNITTESTS
+CPPFLAGS += -Iunittests/include/
+include unittests/make.config
+endif
+
 include make.config
 include amd64/make.config
 include boot/make.config
 include init/make.config
+include mm/make.config
 KERNEL_OBJS += $(SYSROOT)/usr/bin/libk.o
 
 .PHONY: all install install-binary install-headers clean

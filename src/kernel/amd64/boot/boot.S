@@ -1,7 +1,8 @@
 #include <amd64/asm/boot.h>
 #include <amd64/asm/common.h>
 #include <amd64/asm/msr.h>
-#include <amd64/asm/paging.h>
+#include <amd64/paging.h>
+#include <mm/vm_layout.h>
 
 .intel_syntax noprefix
 
@@ -66,6 +67,9 @@ _start:
     mov rax, KERNEL_OFFSET
     add rsi, rax
 
+    /* Map 1GB physical memory to virtual */
+    call boot_update_paging_pae_enabled
+    
     /* Remove identity mapping */
     xor rax, rax
     movabs [boot_p4], rax
@@ -99,6 +103,38 @@ _start:
     cli
     hlt
     jmp $
+
+/*
+This maps 1GB of physical memory -> virtual memory starting at kernel base
+    Convert boot_p2 from pointing to 4KB PTEs -> 2MB PDE
+TODO: Convert boot_p1 -> 2MB PDE also
+*/
+boot_update_paging_pae_enabled:
+    /* Get P3 */
+    movabs rax, [boot_p4 + 8 * EARLY_BOOT_HIGHER_HALF_INDEX]
+    and rax, (~0xFFF)
+    
+    /* Get P2 */
+    mov rax, [rax]
+    and rax, (~0xFFF)
+
+    /* Fill with 2MB page table entries */
+    xor rcx, rcx
+1:
+    cmp rcx, (ENTRIES_PER_PT - 1)
+    jge 2f
+
+    mov rdx, rcx
+    shl rdx, 20
+    or  rdx, (PAGE_HUGE | PAGE_PRESENT | PAGE_WRITE)
+
+    mov [rax], rdx
+
+    add rax, 8
+    inc rcx
+    jmp 1b
+2:
+    ret
 
 .section .bss
 .align PAGE_SIZE

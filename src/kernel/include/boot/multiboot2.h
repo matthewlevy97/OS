@@ -9,11 +9,6 @@
 
 #else
 
-#include <stdint.h>
-
 #define MULTIBOOT2_MAGIC               0x36D76289 // Reply
-
-typedef uint32_t multiboot_magic_t;
-typedef void* multiboot_data_t;
 
 #endif

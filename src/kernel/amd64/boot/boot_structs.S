@@ -1,5 +1,6 @@
-#include <amd64/asm/paging.h>
+#include <amd64/asm/boot.h>
 #include <amd64/asm/segments.h>
+#include <amd64/paging.h>
 
 #define GDT_PRESENT                    (1 << 15)
 #define GDT_CODE                       (3 << 11)
@@ -19,11 +20,14 @@
 boot_p4:
     /* Identity map */
     .quad offset V2P(boot_p3) + (PAGE_PRESENT | PAGE_WRITE)
-    .rept ENTRIES_PER_PT - 2
+    .rept 255
         .quad 0
     .endr
-    /* Map higher-half */
+    /* Map higher-half [Index: EARLY_BOOT_HIGHER_HALF_INDEX=256] */
     .quad offset V2P(boot_p3) + (PAGE_PRESENT | PAGE_WRITE)
+    .rept ENTRIES_PER_PT - (EARLY_BOOT_HIGHER_HALF_INDEX - 1) - 2
+        .quad 0
+    .endr
 boot_p3:
     .quad offset V2P(boot_p2) + (PAGE_PRESENT | PAGE_WRITE)
     .rept ENTRIES_PER_PT - 1
@@ -35,8 +39,7 @@ boot_p2:
         .quad 0
     .endr
 boot_p1:
-    .set i, 1
-    .quad 0xB8000 + (PAGE_PRESENT | PAGE_WRITE)
+    .set i, 0
     .rept ENTRIES_PER_PT - 1
         .quad (i << 12) + (PAGE_PRESENT | PAGE_WRITE)
         .set i, (i+1)
