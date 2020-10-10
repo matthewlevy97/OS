@@ -20,13 +20,9 @@ static bool update_loaded_pages(uintptr_t base, uintptr_t bound);
 static struct page_range *get_page_range(uintptr_t base, uintptr_t bound);
 static void internal_pmm_insert_range(pmm_zone_t, struct page_range *);
 
-static void populate_free_page_list(struct page_zone*);
 static inline struct page *find_free_page(struct page_range**, struct page**);
 
 static struct page_range *get_init_range(size_t, size_t);
-
-static void push_free_page(struct page_zone*, struct page*);
-static struct page* pop_free_page(struct page_zone*);
 
 bool pmm_init(multiboot_header_t multiboot_data)
 {
@@ -45,10 +41,7 @@ bool pmm_init(multiboot_header_t multiboot_data)
 
     for(int i = 0; i < PMM_ZONE_NUM; i++) {
         ram.zones[i].head = NULL;
-
-        ram.zones[i].list.len = 0;
-        memset(&(ram.zones[i].list.free_list), 0,
-            sizeof(ram.zones[i].list.free_list));
+        ram.zones[i].map  = NULL;
     }
     ram.total           = 0;
     ram.total_available = 0;
@@ -85,56 +78,19 @@ size_t pmm_total_available_ram()
     return ram.total_available;
 }
 
-void pmm_insert_range(pmm_zone_t zone, phys_addr_t base, phys_addr_t bound,
-    enum page_range_flags flags)
+struct page *alloc_page(pmm_gpf_t mask)
 {
-    struct page_range *range;
-
-    range = kmalloc(sizeof(*range), GFP_KERNEL);
-    if(!range) return;
-
-    range->base  = base;
-    range->bound = bound;
-    range->flags = flags;
-    internal_pmm_insert_range(zone, range);
-
-    return;
+    // TODO: 
 }
 
-/**
- * TODO: pmm_acquire_region(phys_addr_t base, phys_addr_t bound) -> Create if not exists
- *                  a new region. Increase reference count on region
- * TODO: pmm_release_region(phys_addr_t base, phys_addr_t bound) -> Decrease reference
- *                  count on region
- */
-
-/**
- * TODO: Handle multiple sequential pages in a request
- *  - pmm_get_region() -> Creates a new region in a zone and returns a pointer to it
- */
-uintptr_t pmm_get_page()
+struct page *alloc_pages(pmm_gpf_t mask, uint32_t order)
 {
-    return pmm_get_page_in_zone(PMM_ZONE_NORMAL);
+    // TODO:
 }
-uintptr_t pmm_get_page_in_zone(pmm_zone_t zone)
+
+uintptr_t get_free_page(pmm_gpf_t mask)
 {
-    struct page *page;
-
-    if(zone != PMM_ZONE_LOW && zone != PMM_ZONE_NORMAL && zone != PMM_ZONE_HIGH) {
-        return PMM_INVALID_PAGE;
-    }
-
-    // TODO: Acquire lock here
-    page = pop_free_page(&ram.zones[zone]);
-    if(NULL == page) {
-        // TODO: Release lock here
-        return PMM_INVALID_PAGE;
-    }
-    
-    atomic_inc(&(page->count));
-    // TODO: Release lock here
-
-    return page->physical_page;
+    // TODO:
 }
 
 void pmm_acquire_page(phys_addr_t physical_address)
@@ -155,7 +111,6 @@ void pmm_release_page(phys_addr_t physical_address)
     p = pmm_get_page_for_address(physical_address);
     if(p) {
         if(atomic_dec_and_test(&(p->count))) {
-            // Add to free list!
             if(p->physical_page < PMM_LOW_MEMORY)
                 zone = PMM_ZONE_LOW;
             else if(p->physical_page < PMM_NORMAL_MEMORY)
@@ -163,7 +118,7 @@ void pmm_release_page(phys_addr_t physical_address)
             else
                 zone = PMM_ZONE_HIGH;
             
-            push_free_page(&ram.zones[zone], p);
+            // TODO: Make page avaliable to be allocated again
         }
     }
 }
@@ -297,8 +252,7 @@ static void init_page_zone(pmm_zone_t zone, uintptr_t *page_table_base)
             atomic_set(&(page->count), 0);
             page->physical_page = i * PAGE_SIZE;
 
-            if(!PMM_FREE_LIST_FULL(ram.zones[zone].list))
-                push_free_page(&(ram.zones[zone]), page);
+            // TODO: Add page to list of free pages
 
             page++;
         }
@@ -407,42 +361,9 @@ static void internal_pmm_insert_range(pmm_zone_t zone, struct page_range *range)
     atomic_inc(&(range->count));
 }
 
-static void populate_free_page_list(struct page_zone *zone)
-{
-    struct page_range *range;
-    struct page *page;
-
-    range = zone->head;
-    if(!range) return;
-
-    page = range->first_page;
-    for(int i = 0; i < PMM_PAGE_FREE_LIST_SIZE; i++) {
-        if(NULL == zone->list.free_list[i] ||
-            atomic_get(&(zone->list.free_list[i]->count)) > 0) {
-            zone->list.free_list[i] = find_free_page(&range, &page);
-        }
-    }
-}
-
 static inline struct page *find_free_page(struct page_range **range,
     struct page **page)
 {
-    struct page *p;
-
-    while(*range) {
-        while(*page && (*page)->physical_page < (*range)->bound - PAGE_SIZE) {
-            if(0 == atomic_get(&((*page)->count))) {
-                p = *page;
-                (*page)++;
-                return p;
-            }
-            (*page)++;
-        }
-
-        *range = (*range)->next;
-        *page = (*range)->first_page;
-    }
-
     return NULL;
 }
 
@@ -450,38 +371,8 @@ static inline struct page_range *get_init_range(size_t base, size_t bound)
 {
     init_ranges[init_ranges_index].base            = base;
     init_ranges[init_ranges_index].bound           = bound;
-    init_ranges[init_ranges_index].flags           = 0;
     init_ranges[init_ranges_index].first_page      = NULL;
     init_ranges_index++;
 
     return &(init_ranges[init_ranges_index-1]);
-}
-
-static inline void push_free_page(struct page_zone *zone, struct page *p)
-{
-    if(atomic_get(&(p->count)) != 0 || PMM_FREE_LIST_FULL(zone->list))
-        return;
-    
-    zone->list.free_list[zone->list.len] = p;
-    zone->list.len++;
-}
-
-static inline struct page* pop_free_page(struct page_zone *zone)
-{
-    struct page *p;
-
-    if(0 == zone->list.len) {
-        populate_free_page_list(zone);
-
-        // Hopefully there are pages, but if not...
-        if(0 == zone->list.len) {
-            klog("[PMM] Zone Free-List Empty After Attempted Populate!");
-            return NULL;
-        }
-    }
-    zone->list.len--;
-
-    p = zone->list.free_list[zone->list.len];
-    zone->list.free_list[zone->list.len] = NULL;
-    return p;
 }

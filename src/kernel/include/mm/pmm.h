@@ -4,7 +4,6 @@
 #include <mm/paging.h>
 #include <atomic.h>
 #include <common.h>
-#include <list.h>
 #include <types.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -17,31 +16,17 @@ struct page {
     atomic_t count;
 };
 
-enum page_range_flags {
-    DUMMY_VALUE
-};
-
 struct page_range {
     // TODO: Add spinlock on this structure for getting pages
     struct page_range *next;
     struct page *first_page;
     phys_addr_t base, bound;
-    enum page_range_flags flags;
     atomic_t count;
-};
-
-#define PMM_FREE_LIST_EMPTY(list) \
-    ((list).len == 0)
-#define PMM_FREE_LIST_FULL(list)  \
-    ((list).len == PMM_PAGE_FREE_LIST_SIZE)
-struct page_free_list {
-    uint32_t len;
-    struct page *free_list[PMM_PAGE_FREE_LIST_SIZE];
 };
 
 struct page_zone {
     struct page_range *head;
-    struct page_free_list list;
+    struct buddy_bitmap *map;
 };
 
 #define PMM_LOW_MEMORY                 (1 * MB)
@@ -54,6 +39,12 @@ typedef enum {
     PMM_ZONE_NUM,
 } pmm_zone_t;
 
+typedef enum {
+    __GFP_DMA        = (1 << 0), // PMM_ZONE_LOW
+    __GFP_HIGH       = (1 << 1),
+    __GPF_ZERO       = (1 << 2), // Zero pages before returning
+} pmm_gpf_t;
+
 struct pmm_ram {
     struct page_zone zones[PMM_ZONE_NUM];
     size_t total, total_available;
@@ -63,13 +54,11 @@ bool pmm_init(multiboot_header_t);
 size_t pmm_total_ram();
 size_t pmm_total_available_ram();
 
-uintptr_t pmm_get_page();
-uintptr_t pmm_get_page_in_zone(pmm_zone_t);
+struct page *alloc_page(pmm_gpf_t mask);
+struct page *alloc_pages(pmm_gpf_t mask, uint32_t order);
+uintptr_t get_free_page(pmm_gpf_t mask);
 
 void pmm_acquire_page(phys_addr_t);
 void pmm_release_page(phys_addr_t);
 
 struct page *pmm_get_page_for_address(phys_addr_t);
-
-void pmm_insert_range(pmm_zone_t, phys_addr_t, phys_addr_t,
-    enum page_range_flags);
