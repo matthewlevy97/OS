@@ -2,29 +2,46 @@
 
 // TODO: Make list functions thread safe
 
-list_entry_t list_prepend(list_entry_t head, list_entry_t entry)
+list_entry_t list_init(list_entry_t entry)
 {
-    if(NULL == head || NULL == entry) return entry;
-
+    entry->next = NULL;
     entry->prev = NULL;
-    entry->next = head;
-    head->prev  = entry;
     return entry;
 }
 
-list_entry_t list_append(list_entry_t head, list_entry_t entry)
+list_entry_t list_prepend(list_entry_t *head, list_entry_t entry)
 {
-    list_entry_t origin_head;
+    if(NULL == head)
+        return entry;
+    if(NULL == *head || NULL == entry) {
+        *head = entry;
+        return entry;
+    }
 
-    if(NULL == head || NULL == entry) return entry;
+    entry->prev = NULL;
+    entry->next = *head;
+    (*head)->prev  = entry;
+    return entry;
+}
 
-    origin_head = head;
-    while(head->next) head = head->next;
+list_entry_t list_append(list_entry_t *head, list_entry_t entry)
+{
+    list_entry_t tmp;
 
-    entry->prev = head;
+    if(NULL == head)
+        return entry;
+    if(NULL == *head || NULL == entry) {
+        *head = entry;
+        return entry;
+    }
+
+    tmp = *head;
+    while(tmp->next) tmp = tmp->next;
+
+    entry->prev = *head;
     entry->next = NULL;
-    head->next  = entry;
-    return origin_head;
+    tmp->next  = entry;
+    return *head;
 }
 
 bool list_insert_before(list_entry_t entry, list_entry_t new_entry)
@@ -55,16 +72,17 @@ bool list_insert_after(list_entry_t entry, list_entry_t new_entry)
     return true;
 }
 
-list_entry_t list_remove(list_entry_t entry)
+void list_remove(list_entry_t *entry)
 {
-    if(NULL == entry) return NULL;
+    if(NULL == entry || NULL == *entry)
+        return;
 
-    if(entry->prev)
-        entry->prev->next = entry->next;
-    if(entry->next)
-        entry->next->prev = entry->prev;
+    if((*entry)->prev)
+        (*entry)->prev->next = (*entry)->next;
+    if((*entry)->next)
+        (*entry)->next->prev = (*entry)->prev;
     
-    entry->next = NULL;
-    entry->prev = NULL;
-    return entry;
+    (*entry)->next = NULL;
+    (*entry)->prev = NULL;
+    *entry = NULL;
 }

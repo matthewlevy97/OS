@@ -14,19 +14,21 @@
 void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
 {
     klog_init((void*)P2V(0xB8000), 80*25*2);
+
+    // Remap multiboot data to directly after kernel
+    memcpy((void*)P2V(ALIGN_LOG2((uintptr_t)&_kernel_end, PAGE_SIZE)),
+        multiboot_data, multiboot_data->size);
+    multiboot_data = (multiboot_header_t)P2V(ALIGN_LOG2(
+        (uintptr_t)&_kernel_end, PAGE_SIZE));
     
-    // Remap multiboot data to 2nd physical page in memory
-    memcpy(P2V(PAGE_SIZE), multiboot_data, multiboot_data->size);
-    multiboot_data = P2V(PAGE_SIZE);
-
-    // TODO: Remap multiboot loaded modules to lower memory
-
+    // TODO: Remap multiboot loaded modules to right after multiboot
+    
     // Confirm multiboot magic is correct
     if(magic != MULTIBOOT2_MAGIC) {
         klog("Invalid multiboot magic!");
         return;
     }
-    
+
     if(!pmm_init(multiboot_data)) {
         klog("Failed to initialize PMM!");
         return;
@@ -39,7 +41,7 @@ void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
     }
     klog("[PMM Unit-Tests] Passed All %d Tests\n", num_tests);
 #endif
-
+    
     if(!paging_init()) {
         klog("Paging failed to initialize!");
         return;

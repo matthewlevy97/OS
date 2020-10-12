@@ -21,6 +21,7 @@ struct multiboot_tag {
     uint32_t size;
 };
 
+#define MULTIBOOT_MMAP_VERSION         ((int)0)
 enum multiboot_mmap_entry_types {
     MULTIBOOT_MMAP_TYPE_IGNORE    = 0,
     MULTIBOOT_MMAP_TYPE_AVAILABLE = 1,

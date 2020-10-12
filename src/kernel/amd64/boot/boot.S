@@ -108,6 +108,9 @@ _start:
 This maps 1GB of physical memory -> virtual memory starting at kernel base
     Convert boot_p2 from pointing to 4KB PTEs -> 2MB PDE
 TODO: Convert boot_p1 -> 2MB PDE also
+
+Looks like it misses 1 2MB section
+Also, mapping is not full as it appears that some mapped memory is not being accessible
 */
 boot_update_paging_pae_enabled:
     /* Get P3 */
@@ -121,11 +124,11 @@ boot_update_paging_pae_enabled:
     /* Fill with 2MB page table entries */
     xor rcx, rcx
 1:
-    cmp rcx, (ENTRIES_PER_PT - 1)
+    cmp rcx, (ENTRIES_PER_PT)
     jge 2f
 
     mov rdx, rcx
-    shl rdx, 20
+    shl rdx, 21
     or  rdx, (PAGE_HUGE | PAGE_PRESENT | PAGE_WRITE)
 
     mov [rax], rdx

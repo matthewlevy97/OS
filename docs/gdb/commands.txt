@@ -1,0 +1,4 @@
+https://www.qemu.org/docs/master/system/monitor.html
+- monitor info mtree
+- monitor info tlb
+- monitor info pci
