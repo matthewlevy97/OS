@@ -15,6 +15,9 @@
  *  Create "struct page"'s for all possible pages. Figure out best way to do this
  *  Add code to profile system
  *      - Determine how much RAM is attached, is available, is used by kernel, etc
+ *  Think about having the buddys done in reverse order so smaller blocks
+ *      appear first closer to the base than the bound. Allows using smaller
+ *      addresses before larger ones
  */
 
 static struct pmm_ram ram;
@@ -62,21 +65,22 @@ size_t pmm_used()
     return ram.used;
 }
 
-struct page *alloc_page(pmm_gpf_t mask)
-{
-    // TODO:
-    return NULL;
-}
-
-// TODO: Handle mask flags
 vm_addr_t get_free_page(pmm_gpf_t mask)
 {
     list_entry_t *first_free;
     vm_addr_t page;
+    pmm_zone_t zone;
 
-    first_free = &ram.zones[PMM_ZONE_NORMAL].free_list[0];
+    if(mask & __GFP_DMA)
+        zone = PMM_ZONE_DMA;
+    else if(mask & __GFP_HIGH)
+        zone = PMM_ZONE_HIGH;
+    else
+        zone = PMM_ZONE_NORMAL;
+
+    first_free = &ram.zones[zone].free_list[0];
     if(NULL == *first_free) {
-        if(!internal_alloc(0, PMM_ZONE_NORMAL, true))
+        if(!internal_alloc(0, zone, true))
             return PMM_INVALID_PAGE;
     }
 
@@ -85,6 +89,9 @@ vm_addr_t get_free_page(pmm_gpf_t mask)
     *first_free = (*first_free)->next;
 
     ram.used += PAGE_SIZE;
+
+    if(mask & __GPF_ZERO)
+        memset((void*)page, 0, PAGE_SIZE);
 
     return page;
 }
@@ -137,12 +144,6 @@ void free_page(vm_addr_t addr)
 err_checking_bitmap:
     klog("Error getting bit from split bitmap!");
     return;
-}
-
-struct page *pmm_get_page_for_address(phys_addr_t addr)
-{
-    // TODO:
-    return NULL;
 }
 
 static bool setup_buddy_allocator(multiboot_header_t mboot_header)

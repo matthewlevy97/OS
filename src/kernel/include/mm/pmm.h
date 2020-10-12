@@ -13,11 +13,6 @@
 
 #define PMM_INVALID_PAGE               ((uintptr_t)-1)
 
-struct page {
-    uintptr_t physical_page;
-    atomic_t count;
-};
-
 #define PMM_MEMORY_BOUND_DMA           ((uintptr_t)(1 * MB))
 #define PMM_MEMORY_BOUND_NORMAL        ((uintptr_t)(4 * GB))
 typedef enum {
@@ -58,9 +53,6 @@ size_t pmm_total_ram();
 size_t pmm_total_available_ram();
 size_t pmm_used();
 
-struct page *alloc_page(pmm_gpf_t mask);
 vm_addr_t get_free_page(pmm_gpf_t mask);
 
 void free_page(vm_addr_t);
-
-struct page *pmm_get_page_for_address(phys_addr_t);
