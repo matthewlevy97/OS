@@ -2,6 +2,7 @@
 #include <amd64/gdt.h>
 #include <amd64/idt.h>
 #include <amd64/init.h>
+#include <devices/8259PIC/pic.h>
 #include <string.h>
 
 static struct cpu_local_data base_cpu_data = {
@@ -38,6 +39,8 @@ struct cpu_local_data *amd64_init_core(struct cpu_local_data *cpu)
     gdt_init(cpu);
     tss_init(cpu);
 	idt_init(cpu);
+	
+	pic_init();
 
 	return cpu;
 }

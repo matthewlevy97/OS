@@ -1,7 +1,6 @@
 #include <mm/kmalloc.h>
 #include <mm/pmm.h>
 #include <mm/paging.h>
-#include <amd64/paging.h>
 #include <common.h>
 #include <string.h>
 #include <klog.h>

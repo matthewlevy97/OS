@@ -66,4 +66,6 @@ typedef struct {
 	uint64_t ss;
 } registers_t;
 
+#include <amd64/idt.h>
+
 #endif

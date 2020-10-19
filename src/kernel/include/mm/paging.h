@@ -61,6 +61,14 @@ struct vm_map {
     struct virtual_range *vm_ranges;
 };
 
+/**
+ * All architecture specific import need to be here
+ * The correct imports will be chosen via DEFINE directives
+ */
+#ifdef ARCH_x86_64
+#include <amd64/paging.h>
+#endif
+
 bool paging_init(struct vm_map*);
 
 void paging_reload_tlb(struct vm_map*);

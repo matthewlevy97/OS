@@ -60,5 +60,7 @@ void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
     klog("Initialized Paging!\n");
 
     interrupt_enable();
+
+    klog("Kernel Loaded!\n");
     while(1);
 }

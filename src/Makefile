@@ -1,4 +1,6 @@
-TARGET:=x86_64-elf
+TARGET_ARCH:=x86_64
+
+TARGET:=$(TARGET_ARCH)-elf
 CC:=$(TARGET)-gcc
 LD:=$(TARGET)-ld
 AS:=$(TARGET)-as
@@ -25,6 +27,9 @@ KERNEL_ASFLAGS += -ggdb
 else
 KERNEL_CFLAGS += -O3
 endif
+
+# Set the correct kernel architecture
+KERNEL_CFLAGS += -DARCH_$(TARGET_ARCH)
 
 COMPILER_PROGRAMS:= \
 	CC="$(CC)" \
