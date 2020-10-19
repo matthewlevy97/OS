@@ -1,4 +1,5 @@
 #include <amd64/asm/segments.h>
+#include <amd64/cpu.h>
 #include <amd64/idt.h>
 #include <common.h>
 #include <string.h>

@@ -1,7 +1,7 @@
 #include <mm/kmalloc.h>
 #include <mm/vm_layout.h>
-
 #include <common.h>
+#include <klog.h>
 #include <stdint.h>
 
 extern void *kmalloc_eternal(size_t size, size_t align, gfp_t flags);
@@ -19,7 +19,7 @@ void free(void *ptr)
     /* Determine region block belongs to */
     if((uintptr_t)ptr < KHEAP_OFFSET || (uintptr_t)ptr > KHEAP_END) {
         // ptr not in the heap!
-        // TODO: PANIC
+        KPANIC("Cannot free ptr outside of heap: 0x%x\n", ptr);
         return;
     }
 

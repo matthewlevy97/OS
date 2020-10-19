@@ -1,9 +1,9 @@
-#include <amd64/interrupt.h>
 #include <amd64/init.h>
 #include <init/kmain.h>
 #include <mm/paging.h>
 #include <mm/pmm.h>
 #include <mm/vm_layout.h>
+#include <interrupt.h>
 #include <klog.h>
 #include <string.h>
 

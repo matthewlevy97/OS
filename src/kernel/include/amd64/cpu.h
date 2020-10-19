@@ -68,4 +68,7 @@ typedef struct {
 
 #include <amd64/idt.h>
 
+void isr_common(void);
+void idt_load(void *);
+
 #endif
