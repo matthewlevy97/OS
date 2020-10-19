@@ -65,11 +65,17 @@ size_t pmm_used()
     return ram.used;
 }
 
-vm_addr_t get_free_page(pmm_gpf_t mask)
+phys_addr_t get_free_page(pmm_gpf_t mask)
+{
+    return get_pages(PAGE_SIZE, mask);
+}
+
+phys_addr_t get_pages(size_t length, pmm_gpf_t mask)
 {
     list_entry_t *first_free;
     vm_addr_t page;
     pmm_zone_t zone;
+    size_t order;
 
     if(mask & __GFP_DMA)
         zone = PMM_ZONE_DMA;
@@ -78,9 +84,11 @@ vm_addr_t get_free_page(pmm_gpf_t mask)
     else
         zone = PMM_ZONE_NORMAL;
 
-    first_free = &ram.zones[zone].free_list[0];
+    order = get_free_list_index(length / PAGE_SIZE);
+
+    first_free = &ram.zones[zone].free_list[order];
     if(NULL == *first_free) {
-        if(!internal_alloc(0, zone, true))
+        if(!internal_alloc(order, zone, true))
             return PMM_INVALID_PAGE;
     }
 
@@ -93,7 +101,7 @@ vm_addr_t get_free_page(pmm_gpf_t mask)
     if(mask & __GPF_ZERO)
         memset((void*)page, 0, PAGE_SIZE);
 
-    return page;
+    return V2P(page);
 }
 
 // TODO: Improve this code. Looks like trash

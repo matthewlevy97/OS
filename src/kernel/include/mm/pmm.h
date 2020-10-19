@@ -53,6 +53,7 @@ size_t pmm_total_ram();
 size_t pmm_total_available_ram();
 size_t pmm_used();
 
-vm_addr_t get_free_page(pmm_gpf_t mask);
+phys_addr_t get_free_page(pmm_gpf_t mask);
+phys_addr_t get_pages(size_t length, pmm_gpf_t mask);
 
 void free_page(vm_addr_t);

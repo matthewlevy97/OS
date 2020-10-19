@@ -4,13 +4,13 @@
 #include <common.h>
 #include <stdint.h>
 
-extern void *kmalloc_eternal(size_t size, gfp_t flags);
+extern void *kmalloc_eternal(size_t size, size_t align, gfp_t flags);
 
 void *kmalloc_a(size_t size, size_t align, gfp_t flags)
 {
-    if(flags & GFP_ETERNAL)
-        return kmalloc_eternal(size, flags);
-    
+    if(flags & GFP_ETERNAL) {
+        return kmalloc_eternal(size, align, flags);
+    }
     return NULL;
 }
 

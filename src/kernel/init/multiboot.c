@@ -7,10 +7,10 @@ struct multiboot_tag *multiboot_get_tag(multiboot_header_t data,
     struct multiboot_tag *tag;
     char *ptr;
 
-    ptr = data;
+    ptr = (char*)data;
     ptr += sizeof(struct multiboot_header_tag);
     while((uintptr_t)ptr < (uintptr_t)(data + data->size)) {
-        tag = ptr;
+        tag = (struct multiboot_tag *)ptr;
         if(tag->type == type)
             return tag;
         ptr += tag->size + ((tag->size & 7) ? 8 - (tag->size & 7) : 0);

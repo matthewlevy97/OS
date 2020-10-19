@@ -2,3 +2,4 @@ sysroot/
 *.log
 *.iso
 .gdb_history
+.vscode/

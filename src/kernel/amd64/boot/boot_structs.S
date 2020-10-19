@@ -25,22 +25,22 @@ boot_p4:
     .endr
     /* Map higher-half [Index: EARLY_BOOT_HIGHER_HALF_INDEX=256] */
     .quad offset V2P(boot_p3) + (PAGE_PRESENT | PAGE_WRITE)
-    .rept ENTRIES_PER_PT - (EARLY_BOOT_HIGHER_HALF_INDEX - 1) - 2
+    .rept PAGING_ENTRIES_PER_PT - (EARLY_BOOT_HIGHER_HALF_INDEX - 1) - 2
         .quad 0
     .endr
 boot_p3:
     .quad offset V2P(boot_p2) + (PAGE_PRESENT | PAGE_WRITE)
-    .rept ENTRIES_PER_PT - 1
+    .rept PAGING_ENTRIES_PER_PT - 1
         .quad 0
     .endr
 boot_p2:
     .quad offset V2P(boot_p1) + (PAGE_PRESENT | PAGE_WRITE)
-    .rept ENTRIES_PER_PT - 1
+    .rept PAGING_ENTRIES_PER_PT - 1
         .quad 0
     .endr
 boot_p1:
     .set i, 0
-    .rept ENTRIES_PER_PT - 1
+    .rept PAGING_ENTRIES_PER_PT - 1
         .quad (i << 12) + (PAGE_PRESENT | PAGE_WRITE)
         .set i, (i+1)
     .endr

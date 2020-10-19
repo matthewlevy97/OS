@@ -124,7 +124,7 @@ boot_update_paging_pae_enabled:
     /* Fill with 2MB page table entries */
     xor rcx, rcx
 1:
-    cmp rcx, (ENTRIES_PER_PT)
+    cmp rcx, (PAGING_ENTRIES_PER_PT)
     jge 2f
 
     mov rdx, rcx

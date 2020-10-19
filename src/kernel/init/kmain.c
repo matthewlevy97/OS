@@ -11,8 +11,12 @@
 #include <unittests/unittest.h>
 #endif
 
+static struct vm_map init_vmmap;
+
 void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
 {
+    interrupt_disable();
+
     klog_init((void*)P2V(0xB8000), 80*25*2);
 
     // Remap multiboot data to directly after kernel
@@ -29,10 +33,17 @@ void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
         return;
     }
 
-    if(!pmm_init(multiboot_data)) {
-        klog("Failed to initialize PMM!");
+    if(NULL == amd64_init_core(NULL)) {
+        klog("Bootstrap CPU Core failed to initialize!\n");
         return;
     }
+    klog("Bootstrap CPU Core Initialized!\n");
+
+    if(!pmm_init(multiboot_data)) {
+        klog("Failed to initialize PMM!\n");
+        return;
+    }
+    klog("Initialized PMM!\n");
 #ifdef RUN_UNITTESTS
     size_t num_tests, failed;
     if(!run_unittests(UNIT_TEST_PMM, &num_tests, &failed)) {
@@ -42,18 +53,12 @@ void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
     klog("[PMM Unit-Tests] Passed All %d Tests\n", num_tests);
 #endif
     
-    if(!paging_init()) {
-        klog("Paging failed to initialize!");
+    if(!paging_init(&init_vmmap)) {
+        klog("Paging failed to initialize!\n");
         return;
     }
+    klog("Initialized Paging!\n");
 
-    if(NULL == amd64_init_core(NULL)) {
-        klog("Bootstrap CPU Core failed to initialize!");
-        return;
-    }
-
-    klog("Bootstrap CPU Core Initialized!");
-    
     interrupt_enable();
     while(1);
 }
