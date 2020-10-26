@@ -15,3 +15,4 @@ VMM - AVL tree of virtual memory
 - Setup CMOS/RTC
 - Setup serial output
 - Start adding unit tests again to code
+- kmem_cache -> SLAB allocator
