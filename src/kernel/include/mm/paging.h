@@ -47,8 +47,8 @@ struct virtual_range {
     vm_addr_t vm_start, vm_end;
     pg_map_flags_t vm_flags;
 
-    // TODO: Page fault handler
-
+    void (*page_fault_handler)(void*);
+    
     enum paging_range_type type;
     union {
         void *physical_start;

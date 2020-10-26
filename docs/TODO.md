@@ -11,7 +11,7 @@ VMM - AVL tree of virtual memory
 
 - Setup Timer interrupt
 - Finish paging/virtual memory code
+- Update vm_layout
 - Setup CMOS/RTC
 - Setup serial output
 - Start adding unit tests again to code
-- Finish kmalloc

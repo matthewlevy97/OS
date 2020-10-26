@@ -10,11 +10,14 @@
 
 #define UNUSED(_)                      ((void)(_))
 
+// Aligns Up
 #define __ALIGN_MASK(x, mask)          (((x) + (mask)) & (~(mask)))
 #define ALIGN_LOG2(x, y)               __ALIGN_MASK(x, ((__typeof__(x))(y))-1)
 #define ALIGN_PTR(x)                   ALIGN_LOG2(x, sizeof(void*))
 // Leave the definition of "PAGE_SIZE" to the calling code
 #define ALIGN_PAGE(x)                  ALIGN_LOG2(x, PAGE_SIZE)
+
+#define SIZE_T_SIZE                    ALIGN_LOG2(sizeof(size_t))
 
 extern uintptr_t _kernel_start;
 extern uintptr_t _kernel_text_end;

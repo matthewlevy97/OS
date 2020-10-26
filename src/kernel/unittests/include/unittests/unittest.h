@@ -5,6 +5,7 @@
 
 enum unit_test_type {
     UNIT_TEST_PMM,
+    UNIT_TEST_KMALLOC,
     UNIT_TEST_NUM
 };
 

@@ -14,6 +14,11 @@ typedef struct _list_entry {
 } *list_entry_t;
 
 list_entry_t list_init(list_entry_t entry);
+#define list_init(entry)    \
+    do {                    \
+        (entry)->next = NULL; \
+        (entry)->prev = NULL; \
+    } while(0);
 
 list_entry_t list_prepend(list_entry_t *head, list_entry_t entry);
 list_entry_t list_append(list_entry_t *head, list_entry_t entry);

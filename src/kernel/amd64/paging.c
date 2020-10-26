@@ -1,5 +1,4 @@
 #include <amd64/paging.h>
-#include <mm/kmalloc.h>
 #include <mm/paging.h>
 #include <mm/pmm.h>
 

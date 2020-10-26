@@ -2,13 +2,6 @@
 
 // TODO: Make list functions thread safe
 
-list_entry_t list_init(list_entry_t entry)
-{
-    entry->next = NULL;
-    entry->prev = NULL;
-    return entry;
-}
-
 list_entry_t list_prepend(list_entry_t *head, list_entry_t entry)
 {
     if(NULL == head)
