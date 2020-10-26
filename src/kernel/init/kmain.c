@@ -8,11 +8,31 @@
 #include <klog.h>
 #include <string.h>
 
+#include <drivers/PCI/pci.h>
+
 #ifdef RUN_UNITTESTS
 #include <unittests/unittest.h>
 #endif
 
 static struct vm_map init_vmmap;
+
+#ifdef RUN_UNITTESTS
+/**
+ * Run Unit Tests on all components
+ */
+static __inline void unittest_kernel()
+{
+    // PCI Unit Tests
+    do {
+        size_t num_tests, failed;
+        if(!run_unittests(UNIT_TEST_PCI, &num_tests, &failed)) {
+            KPANIC("[PCI Unit-Tests] Failed %d/%d\n", failed, num_tests);
+            return;
+        }
+        klog("[PCI Unit-Tests] Passed All %d Tests\n", num_tests);
+    } while(0);
+}
+#endif
 
 static __inline void init_mm(multiboot_header_t multiboot_data)
 {
@@ -94,12 +114,16 @@ void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
      * Initialize Memory Functions
      */
     init_mm(multiboot_data);
-
+    
     /**
      * Kernel is now live!
      */
     interrupt_enable();
     klog("Kernel Loaded!\n");
+
+#ifdef RUN_UNITTESTS
+    unittest_kernel();
+#endif
     
     while(1);
 }

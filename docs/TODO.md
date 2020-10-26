@@ -12,3 +12,5 @@
 - Setup serial output
 - Start adding unit tests again to code
 - kmem_cache -> SLAB allocator
+- Setup ctors/dtors
+	- Allow instantiation of drivers easier

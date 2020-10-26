@@ -21,6 +21,9 @@ include init/make.config
 include mm/make.config
 KERNEL_OBJS += $(SYSROOT)/usr/bin/libk.o
 
+include drivers/make.config
+KERNEL_OBJS += $(PCI_OBJS)
+
 .PHONY: all install install-binary install-headers clean
 .SUFFIXES: .o .c .S .S.py
 

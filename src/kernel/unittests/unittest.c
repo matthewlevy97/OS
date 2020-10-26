@@ -1,11 +1,13 @@
 #include <unittests/unittest.h>
 #include <unittests/pmm.h>
 #include <unittests/kmalloc.h>
+#include <unittests/pci.h>
 #include <klog.h>
 
 static struct unit_test *tests[UNIT_TEST_NUM] = {
-    [UNIT_TEST_PMM] = pmm_tests,
+    [UNIT_TEST_PMM]     = pmm_tests,
     [UNIT_TEST_KMALLOC] = kmalloc_tests,
+    [UNIT_TEST_PCI]     = pci_tests
 };
 
 static void run_test(struct unit_test*, size_t*, size_t*);

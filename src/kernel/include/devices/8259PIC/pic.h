@@ -1,7 +1,6 @@
 #pragma once
 
-#include <devices/devices.h>
-#include <stdbool.h>
+#include <drivers/drivers.h>
 
 /**
  * Information Sheet:
