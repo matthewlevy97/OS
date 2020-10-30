@@ -16,9 +16,9 @@ static uint32_t pci_get_class_id(uint8_t bus, uint8_t device);
 bool pci_init()
 {
     drivers = NULL;
-
     return true;
 }
+MODULE_INIT(pci_init)
 
 bool pci_destroy()
 {
@@ -26,6 +26,7 @@ bool pci_destroy()
 
     return true;
 }
+MODULE_EXIT(pci_destroy)
 
 void pci_scan()
 {

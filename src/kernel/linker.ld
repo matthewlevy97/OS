@@ -18,6 +18,14 @@ SECTIONS
 	.data ALIGN(4K) : AT(ADDR(.data) - KERNEL_OFFSET)
 	{
 		*(.data)
+
+		_driver_initcall_start = .;
+		*(.initcall)
+		_driver_initcall_end = .;
+
+		_driver_exitcall_start = .;
+		*(.exitcall)
+		_driver_exitcall_end = .;
 	}
 	.rodata ALIGN(4K) : AT(ADDR(.rodata) - KERNEL_OFFSET)
 	{

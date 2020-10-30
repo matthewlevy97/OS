@@ -1,4 +1,5 @@
 #include <amd64/init.h>
+#include <drivers/drivers.h>
 #include <init/kmain.h>
 #include <mm/kmalloc.h>
 #include <mm/paging.h>
@@ -114,6 +115,11 @@ void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
      * Initialize Memory Functions
      */
     init_mm(multiboot_data);
+
+    /**
+     * Initialize kernel drivers
+     */
+    init_drivers();
     
     /**
      * Kernel is now live!

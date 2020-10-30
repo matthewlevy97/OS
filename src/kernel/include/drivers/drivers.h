@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -24,7 +25,22 @@ extern uint16_t inw(uint16_t port);
 extern uint32_t inl(uint16_t port);
 
 /**
- * Common interface functions that MUST be defined in all drivers
- *  - bool [DRIVER]_init();
- *  - bool [DRIVER]_destroy();
+ * For Driver Initialization
  */
+typedef bool (*initcall_t)(void);
+
+#define __define_initcall(fn)                                           \
+	static initcall_t __used __attribute__((__section__(".initcall")))  \
+    __initcall_##fn = fn;
+#define __define_exitcall(fn)                                           \
+	static initcall_t __used __attribute__((__section__(".exitcall")))  \
+    __initcall_##fn = fn;
+
+/**
+ * NOTE: Do not use these macros in header files, only source files
+ */
+#define MODULE_INIT(fn) __define_initcall(fn)
+#define MODULE_EXIT(fn) __define_exitcall(fn)
+
+void init_drivers();
+void destroy_drivers();
