@@ -19,6 +19,7 @@ include amd64/make.config
 include boot/make.config
 include init/make.config
 include mm/make.config
+include process/make.config
 KERNEL_OBJS += $(SYSROOT)/usr/bin/libk.o
 
 include drivers/make.config

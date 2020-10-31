@@ -2,6 +2,7 @@
 #include <amd64/cpu.h>
 #include <amd64/idt.h>
 #include <common.h>
+#include <klog.h>
 #include <string.h>
 
 /* Located in amd64/interrupt/isr.S.py */
@@ -55,8 +56,11 @@ void deregister_interrupt_handler(uint32_t interrupt_number)
 
 registers_t * interrupt_handler(registers_t *regs)
 {
-    if(idt_handlers[regs->int_no])
+    if(idt_handlers[regs->int_no]) {
         return idt_handlers[regs->int_no](regs);
+    } else {
+        KPANIC("Unhandled interrupt: %d\n", regs->int_no);
+    }
     
     return regs;
 }

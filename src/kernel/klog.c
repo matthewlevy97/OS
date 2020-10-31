@@ -27,43 +27,45 @@ void klog(const char *fmt, ...)
     char *ptr;
     va_list argp;
 
-    va_start(argp, fmt);
+    disable_interrupts_for {
+        va_start(argp, fmt);
 
-    ptr = (char*)fmt;
-    while(*ptr != '\0') {
-        if(*ptr != '%') {
-            ring_buffer_push(&ring_buffer, *ptr++);
-            ring_buffer_push(&ring_buffer, 0x07);
-        } else {
-            ptr++;
-            switch(*ptr)
-            {
-            case '\0':
-                break;
-            case '%':
-                ring_buffer_push(&ring_buffer, *ptr);
+        ptr = (char*)fmt;
+        while(*ptr != '\0') {
+            if(*ptr != '%') {
+                ring_buffer_push(&ring_buffer, *ptr++);
                 ring_buffer_push(&ring_buffer, 0x07);
+            } else {
                 ptr++;
-                break;
-            case 'd':
-                klog_int(va_arg(argp, unsigned long long), 10);
-                ptr++;
-                break;
-            case 's':
-                klog_string(va_arg(argp, char*));
-                ptr++;
-                break;
-            case 'x':
-                klog_int(va_arg(argp, unsigned long long), 16);
-                ptr++;
-                break;
-            default:
-                break;
+                switch(*ptr)
+                {
+                case '\0':
+                    break;
+                case '%':
+                    ring_buffer_push(&ring_buffer, *ptr);
+                    ring_buffer_push(&ring_buffer, 0x07);
+                    ptr++;
+                    break;
+                case 'd':
+                    klog_int(va_arg(argp, unsigned long long), 10);
+                    ptr++;
+                    break;
+                case 's':
+                    klog_string(va_arg(argp, char*));
+                    ptr++;
+                    break;
+                case 'x':
+                    klog_int(va_arg(argp, unsigned long long), 16);
+                    ptr++;
+                    break;
+                default:
+                    break;
+                }
             }
         }
-    }
 
-    va_end(argp);
+        va_end(argp);
+    }
 }
 
 static inline void klog_int(unsigned long long x, int base)

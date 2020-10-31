@@ -11,15 +11,19 @@ list_entry_t list_prepend(list_entry_t *head, list_entry_t entry)
         return entry;
     }
 
-    entry->prev = NULL;
-    entry->next = *head;
-    (*head)->prev  = entry;
+    entry->prev   = (*head)->prev;
+    entry->next   = *head;
+    (*head)->prev = entry;
+
+    // For circular linked lists
+    if((*head)->prev)
+        (*head)->prev->next = entry;
     return entry;
 }
 
 list_entry_t list_append(list_entry_t *head, list_entry_t entry)
 {
-    list_entry_t tmp;
+    list_entry_t tail;
 
     if(NULL == head)
         return entry;
@@ -28,13 +32,19 @@ list_entry_t list_append(list_entry_t *head, list_entry_t entry)
         return entry;
     }
 
-    tmp = *head;
-    while(tmp->next) tmp = tmp->next;
+    tail = *head;
+    if(tail->prev) {
+        // Circular linked lists
+        tail = tail->prev;
+    } else {
+        // Regular linked list
+        while(tail->next) tail = tail->next;
+    }
 
-    entry->prev = *head;
-    entry->next = NULL;
-    tmp->next  = entry;
-    return *head;
+    entry->prev = tail;
+    entry->next = tail->next;
+    tail->next  = entry;
+    return entry;
 }
 
 bool list_insert_before(list_entry_t entry, list_entry_t new_entry)
@@ -77,5 +87,4 @@ void list_remove(list_entry_t *entry)
     
     (*entry)->next = NULL;
     (*entry)->prev = NULL;
-    *entry = NULL;
 }

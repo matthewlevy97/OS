@@ -5,6 +5,7 @@
 .extern interrupt_handler
 
 .global isr_common
+.global isr_common_return_path
 .global idt_load
 .global check_interrupts_enabled
 .global interrupt_disable_flag
@@ -41,6 +42,8 @@ isr_common:
     cld
     mov rdi, rsp
     call interrupt_handler
+    /* Hacky way to context switch. Just need to ensure rax=stack_pointer */
+isr_common_return_path:
     mov rsp, rax
 
     /* Clear CRX values */
@@ -84,4 +87,12 @@ interrupt_disable_flag:
 interrupt_enable_flag:
     push rdi
     popf
+    ret
+
+interrupt_enable:
+    sti
+    ret
+
+interrupt_disable:
+    cli
     ret

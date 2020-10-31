@@ -5,19 +5,17 @@
 #include <mm/paging.h>
 #include <mm/pmm.h>
 #include <mm/vm_layout.h>
+#include <process/scheduler.h>
 #include <interrupt.h>
 #include <klog.h>
 #include <string.h>
 
-#include <drivers/PCI/pci.h>
+static void init_mm(multiboot_header_t multiboot_data);
+static void stage2();
 
 #ifdef RUN_UNITTESTS
 #include <unittests/unittest.h>
-#endif
 
-static struct vm_map init_vmmap;
-
-#ifdef RUN_UNITTESTS
 /**
  * Run Unit Tests on all components
  */
@@ -35,47 +33,7 @@ static __inline void unittest_kernel()
 }
 #endif
 
-static __inline void init_mm(multiboot_header_t multiboot_data)
-{
-    if(!pmm_init(multiboot_data)) {
-        KPANIC("Failed to initialize PMM!\n");
-        return;
-    }
-    klog("Initialized PMM!\n");
-#ifdef RUN_UNITTESTS
-    do {
-        size_t num_tests, failed;
-        if(!run_unittests(UNIT_TEST_PMM, &num_tests, &failed)) {
-            KPANIC("[PMM Unit-Tests] Failed %d/%d\n", failed, num_tests);
-            return;
-        }
-        klog("[PMM Unit-Tests] Passed All %d Tests\n", num_tests);
-    } while(0);
-#endif
-
-    if(!paging_init(&init_vmmap)) {
-        KPANIC("Failed to initialize paging!\n");
-        return;
-    }
-    klog("Initialized Paging!\n");
-
-    if(!kmalloc_init(&init_vmmap)) {
-        KPANIC("Failed to initialize KMalloc!");
-    }
-    klog("Initialized KMalloc!\n");
-#ifdef RUN_UNITTESTS
-    do {
-        size_t num_tests, failed;
-        if(!run_unittests(UNIT_TEST_KMALLOC, &num_tests, &failed)) {
-            KPANIC("[KMalloc Unit-Tests] Failed %d/%d\n", failed, num_tests);
-            return;
-        }
-        klog("[KMalloc Unit-Tests] Passed All %d Tests\n", num_tests);
-    } while(0);
-#endif
-}
-
-void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
+__no_return void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
 {
     interrupt_disable();
 
@@ -117,19 +75,75 @@ void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_data)
     init_mm(multiboot_data);
 
     /**
+     * Initialize process scheduler and start interrupts
+     */
+    struct process *stage2_proc = process_create("idle", &stage2, 0);
+    scheduler_init(stage2_proc);
+
+    while(1);
+}
+
+static void test()
+{
+    while(1) klog("B");;
+}
+
+__no_return static void stage2()
+{
+    klog("Kernel Stage 2 Loaded!\n");
+
+    /**
      * Initialize kernel drivers
      */
     init_drivers();
     
-    /**
-     * Kernel is now live!
-     */
-    interrupt_enable();
-    klog("Kernel Loaded!\n");
-
 #ifdef RUN_UNITTESTS
     unittest_kernel();
 #endif
-    
+
+    scheduler_set_priority(process_this(), PROCESS_PRIORITY_IDLE);
     while(1);
+}
+
+static __inline void init_mm(multiboot_header_t multiboot_data)
+{
+    struct vm_map *vm_map;
+
+    if(!pmm_init(multiboot_data)) {
+        KPANIC("Failed to initialize PMM!\n");
+        return;
+    }
+    klog("Initialized PMM!\n");
+#ifdef RUN_UNITTESTS
+    do {
+        size_t num_tests, failed;
+        if(!run_unittests(UNIT_TEST_PMM, &num_tests, &failed)) {
+            KPANIC("[PMM Unit-Tests] Failed %d/%d\n", failed, num_tests);
+            return;
+        }
+        klog("[PMM Unit-Tests] Passed All %d Tests\n", num_tests);
+    } while(0);
+#endif
+
+    vm_map = paging_init();
+    if(NULL == vm_map) {
+        KPANIC("Failed to initialize paging!\n");
+        return;
+    }
+    klog("Initialized Paging!\n");
+
+    if(!kmalloc_init(vm_map)) {
+        KPANIC("Failed to initialize KMalloc!");
+    }
+    klog("Initialized KMalloc!\n");
+#ifdef RUN_UNITTESTS
+    do {
+        size_t num_tests, failed;
+        if(!run_unittests(UNIT_TEST_KMALLOC, &num_tests, &failed)) {
+            KPANIC("[KMalloc Unit-Tests] Failed %d/%d\n", failed, num_tests);
+            return;
+        }
+        klog("[KMalloc Unit-Tests] Passed All %d Tests\n", num_tests);
+    } while(0);
+#endif
 }

@@ -69,9 +69,12 @@ struct vm_map {
 #include <amd64/paging.h>
 #endif
 
-bool paging_init(struct vm_map*);
+struct vm_map *paging_init();
 
 void paging_reload_tlb(struct vm_map*);
+
+struct vm_map *paging_create_vmmap();
+void paging_destroy_vmmap(struct vm_map**);
 
 void paging_map(struct vm_map*, vm_addr_t, pg_map_flags_t);
 void paging_map2(struct vm_map*, vm_addr_t, phys_addr_t, pg_map_flags_t);

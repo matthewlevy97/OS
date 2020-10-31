@@ -22,6 +22,9 @@
 
 #define PIC_ICW4                       (0x01)
 
+#define PIC_TIMER_IRQ                  (0x00)
+#define PIC_KEYBOARD_IRQ               (0x01)
+
 enum pic_interrupts {
 	PIC_INTERNAL_TIMER  = 1 << 0,
 	PIC_KEYBOARD        = 1 << 1,
