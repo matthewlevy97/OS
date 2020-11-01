@@ -42,7 +42,7 @@ struct process {
 
     struct vm_map *vm_map;
     uintptr_t user_stack_pointer;
-    uintptr_t kernel_stack_pointer;
+    uintptr_t kernel_stack_pointer, kernel_stack_base;
     
     spinlock_t lock;
 
@@ -55,3 +55,8 @@ struct process *process_create(const char*, void (*entry)(),
     enum process_create_flags);
 struct process *process_duplicate(struct process*);
 void process_destroy(struct process*);
+
+void process_push_kernel_stack(struct process*, void*, size_t);
+void process_push_user_stack(struct process*, void*, size_t);
+
+void process_map_program(struct process*);

@@ -80,12 +80,7 @@ __no_return void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_dat
     struct process *stage2_proc = process_create("idle", &stage2, 0);
     scheduler_init(stage2_proc);
 
-    while(1);
-}
-
-static void test()
-{
-    while(1) klog("B");;
+    __unreachable;
 }
 
 __no_return static void stage2()
@@ -101,6 +96,9 @@ __no_return static void stage2()
     unittest_kernel();
 #endif
 
+    scheduler_add(process_create("init", NULL, PROCESS_CREATE_USER));
+
+    // Kernel idle task
     scheduler_set_priority(process_this(), PROCESS_PRIORITY_IDLE);
     while(1);
 }

@@ -73,5 +73,6 @@ static void set_interrupt_gate(uint32_t num, uintptr_t isr, uint16_t cs,
     idt[num].offset_high   = (isr >> 32) & 0xFFFFFFFFULL;
     idt[num].cs            = cs;
     idt[num].ist           = ist;
-    idt[num].flags         = flags;
+    // TODO: Is it OK for all interrupts to be initiated from RING-3???
+    idt[num].flags         = flags | IDT_DPL3;
 }

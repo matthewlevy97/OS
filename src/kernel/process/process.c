@@ -11,14 +11,6 @@ static pid_t generate_pid();
 static bool generate_kernel_stack(struct process*);
 static bool generate_user_stack(struct process*);
 
-static size_t aslr_offset();
-
-// TODO: Until a better way is added....
-static size_t get_random()
-{
-    return 0;
-}
-
 struct process *process_create(const char *name, void (*entry)(),
     enum process_create_flags flags)
 {
@@ -36,12 +28,16 @@ struct process *process_create(const char *name, void (*entry)(),
     list_init(proc);
     
     proc->pid = generate_pid();
-    strncpy(&(proc->name), name, sizeof(proc->name));
+    strncpy(proc->name, name, sizeof(proc->name));
     
     proc->user     = flags & PROCESS_CREATE_USER;
     proc->state    = PROCESS_STATE_RUNNING;
     proc->priority = PROCESS_PRIORITY_NORMAL;
-    proc->entry    = entry;
+
+    if(false == proc->user)
+        proc->entry = entry;
+    else
+        proc->entry = &arch_userland_trampoline;
     
     if(!generate_kernel_stack(proc))
         goto err_proc;
@@ -79,6 +75,32 @@ void process_destroy(struct process *proc)
     kfree(proc);
 }
 
+void process_push_kernel_stack(struct process *proc, void *ptr, size_t size)
+{
+    proc->kernel_stack_pointer -= size;
+    memcpy((void*)proc->kernel_stack_pointer, ptr, size);
+}
+
+void process_push_user_stack(struct process *proc, void *ptr, size_t size)
+{
+    proc->user_stack_pointer -= size;
+    memcpy((void*)proc->user_stack_pointer, ptr, size);
+}
+
+void process_map_program(struct process *proc)
+{
+    // TODO: This is not an implementation to load a program!!!
+    uintptr_t val;
+
+    paging_map(proc->vm_map, 0xDEADBEEF, PAGE_MAP_PRESENT|PAGE_MAP_RING3);
+    memcpy(0xDEADBEEF, "\xeb\xfe", 2); // jmp $
+
+    val = 0xCAFEBABE;
+    process_push_user_stack(proc, &val, sizeof(val));
+
+    proc->entry = 0xDEADBEEF;
+}
+
 static pid_t generate_pid()
 {
     // TODO: Generate PIDs in a better manner
@@ -88,7 +110,7 @@ static pid_t generate_pid()
 
 static bool generate_kernel_stack(struct process *proc)
 {
-    uintptr_t stack_base, aslr_offset;
+    uintptr_t stack_base;
     phys_addr_t physical_page;
 
     stack_base = ALIGN_PAGE(KSTACK_END) - PAGE_SIZE;
@@ -103,12 +125,12 @@ static bool generate_kernel_stack(struct process *proc)
     // TODO: Add check to ensure get_free_page() was successful
     physical_page = get_free_page(__GPF_ZERO);
     paging_map2(proc->vm_map, stack_base, physical_page,
-        PAGE_MAP_PRESENT | PAGE_MAP_RW | PAGE_MAP_NX);
+        PAGE_MAP_PRESENT | PAGE_MAP_RW);
     
-    aslr_offset = get_random() * sizeof(void*);
-    proc->kernel_stack_pointer = stack_base + (PAGE_SIZE / 2) + aslr_offset;
-    
-    arch_prepare_stack(proc, P2V(physical_page) + (PAGE_SIZE / 2) + aslr_offset);
+    proc->kernel_stack_pointer = stack_base + PAGE_SIZE - sizeof(void*);
+    proc->kernel_stack_base    = proc->kernel_stack_pointer;
+    arch_prepare_stack(proc,
+        (phys_addr_t)(P2V(physical_page) + PAGE_SIZE - sizeof(void*)));
 
     return true;
 }
@@ -116,7 +138,7 @@ static bool generate_kernel_stack(struct process *proc)
 static bool generate_user_stack(struct process *proc)
 {
     registers_t *regs;
-    uintptr_t stack_base, aslr_offset;
+    uintptr_t stack_base;
     phys_addr_t physical_page;
 
     // Just leave if we shouldn't create a userland stack
@@ -136,8 +158,7 @@ static bool generate_user_stack(struct process *proc)
     paging_map2(proc->vm_map, stack_base, physical_page,
         PAGE_MAP_PRESENT | PAGE_MAP_RW | PAGE_MAP_NX | PAGE_MAP_RING3);
     
-    aslr_offset = get_random() * sizeof(void*);
-    proc->user_stack_pointer = stack_base + (PAGE_SIZE / 2) + aslr_offset;
+    proc->user_stack_pointer = stack_base + PAGE_SIZE - sizeof(void*);
 
     return true;
 }

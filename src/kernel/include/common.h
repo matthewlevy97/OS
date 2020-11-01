@@ -9,7 +9,11 @@
 #define __inline                       inline __attribute__((__always_inline__))
 #define __used                         __attribute__((__used__))
 #define __no_return                    __attribute__((noreturn))
-#define __unreachable                  __builtin_unreachable()
+#define __unreachable                                       \
+    do {                                                    \
+        __builtin_unreachable();                            \
+        KPANIC("We reached where we shouldn't have!!!\n");  \
+    } while(1);
 
 #define UNUSED(_)                      ((void)(_))
 

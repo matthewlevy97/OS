@@ -1,5 +1,4 @@
 # TODO
-- Get to userland
 - Map all physical memory into virtual memory
 	- Currently only does first 1G of physical memory w/ 2MB pages
 - Decide if we want page level security in kernel (ie NX/R-ONLY)

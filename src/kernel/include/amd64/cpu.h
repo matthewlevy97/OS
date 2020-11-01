@@ -9,6 +9,10 @@
 #define X86_EFLAGS_IF    (1UL << 9)
 #define X86_EFLAGS_DF    (1UL << 10)
 #define X86_EFLAGS_OF    (1UL << 11)
+/**
+ * Allow RING-3 to access I/O Ports
+ * This includes *cli* and *sti* because reasons
+ */
 #define X86_EFLAGS_IOPL  (3UL << 12)
 #define X86_EFLAGS_NT    (1UL << 14)
 #define X86_EFLAGS_RF    (1UL << 16)
@@ -20,7 +24,7 @@
 
 #define X86_EFLAGS_STANDARD (\
 	X86_EFLAGS_DF | X86_EFLAGS_IF | \
-	X86_EFLAGS_IOPL | X86_EFLAGS_AC)
+	X86_EFLAGS_AC)
 
 #ifndef __ASSEMBLER__
 

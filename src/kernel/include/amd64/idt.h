@@ -13,6 +13,7 @@ enum {
     IDT_PRESENT        = 1 << 7,
 
     IDT_DPL0           = 0x00, // RING-0
+    IDT_DPL3           = 0x60, // Allow interrupt to be initiated when RING-3
 
     IDT_INTERRUPT_GATE = 0xE,
     IDT_TRAP_GATE      = 0xF,
