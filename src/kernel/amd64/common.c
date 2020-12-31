@@ -52,7 +52,7 @@ void arch_prepare_stack(struct process *process, phys_addr_t physical_address)
         regs.rflags = X86_EFLAGS_STANDARD;
         regs.rsp    = process->kernel_stack_pointer;
         regs.ss     = __KERNEL_DS;
-        memcpy((void*)physical_address - sizeof(regs), &regs, sizeof(regs));
+        memcpy((char*)physical_address - sizeof(regs), &regs, sizeof(regs));
 
         process->kernel_stack_pointer -= sizeof(regs);
     }
@@ -75,7 +75,7 @@ __no_return void arch_userland_trampoline(void)
     regs.rflags = X86_EFLAGS_STANDARD;
     regs.rsp    = proc->user_stack_pointer;
     regs.ss     = __USER_DS;
-    proc->kernel_stack_pointer = &regs;
+    proc->kernel_stack_pointer = (uintptr_t)&regs;
 
     arch_load_context(proc);
     

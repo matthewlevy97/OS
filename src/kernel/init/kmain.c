@@ -6,6 +6,7 @@
 #include <mm/pmm.h>
 #include <mm/vm_layout.h>
 #include <process/scheduler.h>
+#include <vfs/vfs.h>
 #include <interrupt.h>
 #include <klog.h>
 #include <string.h>
@@ -57,7 +58,7 @@ __no_return void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_dat
      */
     if(magic != MULTIBOOT2_MAGIC) {
         KPANIC("Invalid multiboot magic!");
-        return;
+        __unreachable;
     }
 
     /**
@@ -65,7 +66,7 @@ __no_return void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_dat
      */
     if(NULL == amd64_init_core(NULL)) {
         KPANIC("Bootstrap CPU Core failed to initialize!\n");
-        return;
+        __unreachable;
     }
     klog("Bootstrap CPU Core Initialized!\n");
 
@@ -73,6 +74,14 @@ __no_return void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_dat
      * Initialize Memory Functions
      */
     init_mm(multiboot_data);
+
+    /**
+     * Initialize VFS
+     */
+    if(!vfs_init()) {
+        KPANIC("Failed to initialize VFS!\n");
+        __unreachable;
+    }
 
     /**
      * Initialize process scheduler and start interrupts
@@ -96,8 +105,9 @@ __no_return static void stage2()
     unittest_kernel();
 #endif
 
+    // TODO: Actually load an init process
     scheduler_add(process_create("init", NULL, PROCESS_CREATE_USER));
-
+    
     // Kernel idle task
     scheduler_set_priority(process_this(), PROCESS_PRIORITY_IDLE);
     while(1);

@@ -51,20 +51,20 @@ typedef union {
         uint16_t _sign_extend;
     }  __packed;
     struct {
-        uint8_t  present                      : 1;
-        uint8_t  writable                     : 1;
-        uint8_t  usermode                     : 1;
-        uint8_t  writethrough_cache           : 1;
-        uint8_t  disable_cache                : 1;
-        uint8_t  accessed                     : 1;
-        uint8_t  dirty                        : 1;
-        uint8_t  page_size                    : 1;
-        uint8_t  global                       : 1;
-        uint8_t  _available                   : 3;
-        uint64_t _physical_address            : 40;
-        uint8_t  _unused                      : 7;
-        uint8_t  memory_protection_key        : 4;
-        uint8_t  nx                           : 1;
+        uint64_t  present                      : 1;
+        uint64_t  writable                     : 1;
+        uint64_t  usermode                     : 1;
+        uint64_t  writethrough_cache           : 1;
+        uint64_t  disable_cache                : 1;
+        uint64_t  accessed                     : 1;
+        uint64_t  dirty                        : 1;
+        uint64_t  page_size                    : 1;
+        uint64_t  global                       : 1;
+        uint64_t  _available                   : 3;
+        uint64_t _physical_address             : 40;
+        uint64_t  _unused                      : 7;
+        uint64_t  memory_protection_key        : 4;
+        uint64_t  nx                           : 1;
     } __packed;
 } page_table_entry_t;
 #define PAGING_GET_PHYSICAL_ADDRESS(pt_entry) \

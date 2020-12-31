@@ -120,7 +120,7 @@ static void free(void *ptr)
         if(0 == (tmp->flags & KMALLOC_IN_USE)) {
             tmp->next = block->next;
             if(block->next)
-                block->next->prev = tmp;
+                block->next->prev = (struct _list_entry*)tmp;
             
             tmp->blk_size += sizeof(*block) + block->blk_size;
             block = tmp;
@@ -140,7 +140,7 @@ static void free(void *ptr)
         if(0 == (tmp->flags & KMALLOC_IN_USE)) {
             block->next = tmp->next;
             if(block->next)
-                block->next->prev = block;
+                block->next->prev = (struct _list_entry*)block;
             block->blk_size += sizeof(*tmp) + tmp->blk_size;
         } else {
             break;

@@ -69,7 +69,7 @@ void scheduler_add(struct process *proc)
 void scheduler_remove(struct process *proc)
 {
     if(running_head[proc->priority] == proc)
-        running_head[proc->priority] = proc->next;
+        running_head[proc->priority] = (struct process*)proc->next;
     
     list_remove(&proc);
 }
@@ -118,8 +118,8 @@ static struct process *search_for_next_process(struct process *head)
         } else if(proc->state == PROCESS_STATE_BLOCKED) {
             tmp = proc;
 
-            if(proc->prev != proc && proc != current_running) {
-                proc = proc->prev;
+            if((struct process*)proc->prev != proc && proc != current_running) {
+                proc = (struct process*)proc->prev;
 
                 list_remove(&tmp);
                 list_append(&blocked_head, tmp);
@@ -129,8 +129,8 @@ static struct process *search_for_next_process(struct process *head)
             tmp = proc;
 
             // TODO: There is probably a better way to do this
-            if(proc->prev != proc && proc != current_running) {
-                proc = proc->prev;
+            if((struct process*)proc->prev != proc && proc != current_running) {
+                proc = (struct process*)proc->prev;
                 process_destroy(tmp);
             } else {
                 // Only 1 process in running queue and it wants to destroy self

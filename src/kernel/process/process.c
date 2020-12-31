@@ -130,7 +130,7 @@ static bool generate_kernel_stack(struct process *proc)
     proc->kernel_stack_pointer = stack_base + PAGE_SIZE - sizeof(void*);
     proc->kernel_stack_base    = proc->kernel_stack_pointer;
     arch_prepare_stack(proc,
-        (phys_addr_t)(P2V(physical_page) + PAGE_SIZE - sizeof(void*)));
+        (phys_addr_t)((uintptr_t)P2V(physical_page) + PAGE_SIZE - sizeof(void*)));
 
     return true;
 }

@@ -7,9 +7,9 @@
     struct _list_entry *next, *prev;
 
 #define list_foreach(l, e) \
-    for(__typeof__(l) e = (l); e != NULL; e = e->next)
+    for(__typeof__(l) e = (l); e != NULL; e = (__typeof__(l))e->next)
 #define list_foreach_circular(l, e) \
-    for(__typeof__(l) e = (l)->next; e != NULL && e != l; e = e->next)
+    for(__typeof__(l) e = (l)->next; e != NULL && e != l; e = (__typeof__(l))e->next)
 
 typedef struct _list_entry {
     ListEntry_HEAD

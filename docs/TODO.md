@@ -11,3 +11,6 @@
 - Setup serial output
 - Start adding unit tests again to code
 - kmem_cache -> SLAB allocator
+- syscall
+	- Interrupt based
+	- Can add support for sysret/sysenter later
