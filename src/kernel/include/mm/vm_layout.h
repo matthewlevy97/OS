@@ -38,9 +38,9 @@
 #define KMEM_MAP_OFFSET               (KERNEL_OFFSET + MEM_MAP_OFFSET)
 #define KSTACK_OFFSET                 (KERNEL_OFFSET + STACK_OFFSET)
 
-#define KHEAP_END                    (KMEM_MAP_OFFSET - 1)
-#define KMEM_MAP_END                 (KMEM_MAP_OFFSET + (4 * TB) - 1)
-#define KSTACK_END                   (KSTACK_OFFSET + (1 * TB) - 1)
+#define KHEAP_END                     (KMEM_MAP_OFFSET - 1)
+#define KMEM_MAP_END                  (KMEM_MAP_OFFSET + (4 * TB) - 1)
+#define KSTACK_END                    (KSTACK_OFFSET + (1 * TB) - 1)
 
 /* Kernel Heap Layout */
 #define KHEAP_ETERNAL_OFFSET          (KHEAP_OFFSET)
