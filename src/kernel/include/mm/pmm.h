@@ -13,6 +13,11 @@
 
 #define PMM_INVALID_PAGE               ((uintptr_t)-1)
 
+struct page {
+    struct page *next;
+    atomic_t ref_count;
+};
+
 #define PMM_MEMORY_BOUND_DMA           ((uintptr_t)(1 * MB))
 #define PMM_MEMORY_BOUND_NORMAL        ((uintptr_t)(4 * GB))
 typedef enum {
@@ -23,9 +28,10 @@ typedef enum {
 } pmm_zone_t;
 
 typedef enum {
-    __GFP_DMA        = (1 << 0), // PMM_ZONE_LOW
-    __GFP_HIGH       = (1 << 1),
-    __GPF_ZERO       = (1 << 2), // Zero pages before returning
+    __GFP_DMA          = (1 << 0), // PMM_ZONE_LOW
+    __GFP_HIGH         = (1 << 1),
+    __GPF_ZERO         = (1 << 2), // Zero pages before returning
+    __GFP_NO_INCREMENT = (1 << 3), // Don't increment atomic counter
 } pmm_gpf_t;
 
 #define PMM_FREE_LIST_MAX_ORDER        (19)
@@ -40,11 +46,13 @@ struct pmm_zone {
     list_entry_t free_list[PMM_FREE_LIST_MAX_ORDER + 1];
     bitmap_t     split_blocks;
     uintptr_t    base_addr;
+    size_t       length;
     size_t       max_order; // Max order being used. Speed up scanning by a bit
 };
 
 struct pmm_ram {
     struct pmm_zone zones[PMM_ZONE_NUM];
+    struct page *first_struct_page;
     size_t total, total_available, used;
 };
 
@@ -56,4 +64,7 @@ size_t pmm_used();
 phys_addr_t get_free_page(pmm_gpf_t mask);
 phys_addr_t get_pages(size_t length, pmm_gpf_t mask);
 
-void free_page(vm_addr_t);
+void free_page(phys_addr_t);
+
+struct page* physical2page(phys_addr_t);
+phys_addr_t page2physical(struct page*);
