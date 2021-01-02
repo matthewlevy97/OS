@@ -17,10 +17,8 @@ struct vm_map *paging_init()
     kernel_vmmap.page_dir  = paging_get_cr3();
 
     kernel_size = ((uintptr_t)&_kernel_end) - ((uintptr_t)&_kernel_start);
-    // TODO: Might want to remap kernel to enable better protections (4K vs 2M)
-    //paging_map_range2(map,
-    //    (vm_addr_t)&_kernel_start, (phys_addr_t)V2P(&_kernel_start),
-    //    kernel_size, PAGE_MAP_GLOBAL_PAGES | PAGE_MAP_RW | PAGE_MAP_PRESENT);
+    
+    // TODO: Might want to remap kernel to enable better protections (Enable NX, RO, etc.)
 
     return &kernel_vmmap;
 }

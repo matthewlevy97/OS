@@ -12,6 +12,5 @@ class Paging():
             (physical_address & (~0xFFF)) | flags))
 
 paging = Paging()
-paging.map_page(0xFFFF800000000000, 0xcafebabe, 0)
-paging.map_page(0xDEADBEEF, 0xcafebabe, 0)
-paging.map_page(0xFFFF80003FFFFFFF, 0xcafebabe, 0)
+paging.map_page(0xFFFF801400000000, 0xcafebabe, 0)
+paging.map_page(0xFFFF801180000000, 0xcafebabe, 0)

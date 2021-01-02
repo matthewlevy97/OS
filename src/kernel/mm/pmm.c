@@ -5,8 +5,12 @@
 #include <string.h>
 #include <klog.h>
 
+#define V2P_KERNEL_BASED(a) ((uintptr_t)(a) & ~KERNEL_OFFSET)
+
 /**
  * TODO:
+ *  Currently capped at total RAM < 1G. To bypass need to dynamically add
+ *      page tables to cover entire physical memory space
  *  Keep free lists sorted by base address
  *      Makes checking for buddy a bit faster
  *  Add coalesce-ing code
@@ -175,10 +179,10 @@ static bool setup_buddy_allocator(multiboot_header_t mboot_header)
     }
 
     // Critical region is kernel + multiboot + loaded modules
-    critical_start = V2P(&_kernel_start);
+    critical_start = V2P_KERNEL_BASED(&_kernel_start);
     critical_end   = ALIGN_PAGE((uintptr_t)&_kernel_end);
     critical_end  += ALIGN_PAGE(mboot_header->size);
-    critical_end   = V2P(critical_end);
+    critical_end   = V2P_KERNEL_BASED(critical_end);
     // TODO: Add modules to critical end
     ram.used += critical_end - critical_start;
 
@@ -317,7 +321,7 @@ static void buddy_bitmap_init(char *page)
                 // Split it's parent and up
                 for(size_t tmp_order = order + 1;
                     tmp_order <= PMM_FREE_LIST_MAX_ORDER; tmp_order++) {
-                    bit = BUDDY_INDEX_IN_LEVEL(V2P(list),
+                    bit = BUDDY_INDEX_IN_LEVEL(V2P_KERNEL_BASED(list),
                         ram.zones[zone].base_addr, tmp_order);
                     bitmap_set(&ram.zones[zone].split_blocks, bit);
                 }
