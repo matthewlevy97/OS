@@ -26,9 +26,8 @@
 
 #define SIZE_T_SIZE                    ALIGN_LOG2(sizeof(size_t))
 
+// Virtual addresses defined by linker
 extern uintptr_t _kernel_start;
-extern uintptr_t _kernel_text_end;
-extern uintptr_t _kernel_data_end;
 extern uintptr_t _kernel_end;
 
 #endif

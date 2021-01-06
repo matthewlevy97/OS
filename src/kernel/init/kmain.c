@@ -60,7 +60,7 @@ __no_return void kmain(multiboot_magic_t magic, multiboot_header_t multiboot_dat
         KPANIC("Invalid multiboot magic!");
         __unreachable;
     }
-
+    
     /**
      * Initialize CPU
      */
@@ -133,7 +133,7 @@ static __inline void init_mm(multiboot_header_t multiboot_data)
     } while(0);
 #endif
 
-    vm_map = paging_init();
+    vm_map = paging_init(multiboot_data);
     if(NULL == vm_map) {
         KPANIC("Failed to initialize paging!\n");
         return;

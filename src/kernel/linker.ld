@@ -13,18 +13,16 @@ SECTIONS
 		*(.multiboot)
 		*(.text)
 	}
-	_kernel_text_end = .;
-
 	.data ALIGN(4K) : AT(ADDR(.data) - KERNEL_OFFSET)
 	{
 		*(.data)
 
 		_driver_initcall_start = .;
-		*(.initcall)
+		KEEP(*(.initcall))
 		_driver_initcall_end = .;
 
 		_driver_exitcall_start = .;
-		*(.exitcall)
+		KEEP(*(.exitcall))
 		_driver_exitcall_end = .;
 	}
 	.rodata ALIGN(4K) : AT(ADDR(.rodata) - KERNEL_OFFSET)
@@ -32,8 +30,7 @@ SECTIONS
 		*(.rodata)
 		*(.early_boot_structs)
 	}
-	_kernel_data_end = .;
-
+	
 	.bss ALIGN(4K) : AT(ADDR(.bss) - KERNEL_OFFSET)
 	{
 		*(COMMON)

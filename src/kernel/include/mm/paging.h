@@ -1,5 +1,6 @@
 #pragma once
 
+#include <init/multiboot.h>
 #include <list.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -69,7 +70,7 @@ struct vm_map {
 #include <amd64/paging.h>
 #endif
 
-struct vm_map *paging_init();
+struct vm_map *paging_init(multiboot_header_t);
 
 void paging_reload_tlb(struct vm_map*);
 

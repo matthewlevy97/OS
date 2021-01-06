@@ -14,6 +14,7 @@
 
 #endif
 
+#ifdef __ASSEMBLER__
 #define PAGE_PRESENT                  (1)
 #define PAGE_WRITE                    (1 << 1)
 #define PAGE_USER                     (1 << 2)
@@ -28,8 +29,7 @@ PAGE_HUGE - Page 143 of amd64_arch_programming_manual.pdf
 - If CR4.PAE=1 and PDE.PS=1, the physical-page size is 2 Mbytes.
 */
 #define PAGE_HUGE                     (1 << 7)
-#define PAGE_GLOBAL                   (1 << 8)
-#define PAGE_NX                       (1 << 63)
+#endif
 
 #ifndef __ASSEMBLER__
 

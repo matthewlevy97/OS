@@ -11,3 +11,4 @@ export AS=${TARGET}-as
 export AR=${TARGET}-ar
 export SYSROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/sysroot/
 export ISO=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"${KERNEL_NAME}.iso"
+export GCC_INCLUDE_PATH="$(gcc -print-search-dirs|grep '^libraries:'|cut -d'=' -f2|cut -d':' -f1)"

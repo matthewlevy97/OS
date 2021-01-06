@@ -2,23 +2,23 @@
 #include <mm/kmalloc.h>
 #include <mm/paging.h>
 #include <mm/pmm.h>
-
+#include <elf.h>
+#include <klog.h>
 #include <stdint.h>
 #include <string.h>
 
 static struct vm_map kernel_vmmap;
+
 static void set_flags(page_table_entry_t*, pg_map_flags_t);
+static void setup_kernel_protections(multiboot_header_t);
+static void kernel_protection_set_range(uintptr_t, uintptr_t, pg_map_flags_t);
 
-struct vm_map *paging_init()
+struct vm_map *paging_init(multiboot_header_t multiboot_data)
 {
-    size_t kernel_size;
-
     kernel_vmmap.vm_ranges = NULL;
     kernel_vmmap.page_dir  = paging_get_cr3();
-
-    kernel_size = ((uintptr_t)&_kernel_end) - ((uintptr_t)&_kernel_start);
     
-    // TODO: Might want to remap kernel to enable better protections (Enable NX, RO, etc.)
+    setup_kernel_protections(multiboot_data);
 
     return &kernel_vmmap;
 }
@@ -78,10 +78,8 @@ void paging_map2(struct vm_map *map, vm_addr_t addr, phys_addr_t paddr,
 
     entry.addr = addr;
     table = (page_table_t)P2V(map->page_dir);
-
     if(NULL == table) {
-        // TODO: PANIC
-        return;
+        KPANIC("map->page_dir == NULL");
     }
     
     if(NULL == (void*)table[entry.pml4e].addr) {
@@ -167,4 +165,79 @@ static __inline void set_flags(page_table_entry_t *entry, pg_map_flags_t flags)
         entry->usermode = 1;
     if(flags & PAGE_MAP_GLOBAL_PAGES)
         entry->global = 1;
+}
+
+static void setup_kernel_protections(multiboot_header_t multiboot_data)
+{
+    struct multiboot_elf_symbols_tag *elf_symbols;
+    pg_map_flags_t flags;
+    Elf64_Shdr *section_header;
+
+    elf_symbols = (struct multiboot_elf_symbols_tag*)multiboot_get_tag(
+        multiboot_data, MULTIBOOT_TYPE_ELF_SYMBOLS);
+    if(NULL == elf_symbols)
+        return;
+    
+    section_header = (Elf64_Shdr*)elf_symbols->elf_section_headers;
+    for(size_t i = 0; i < elf_symbols->num_entries; i++, section_header++) {
+        if(!(section_header->sh_flags & SHF_ALLOC)) continue;
+
+        flags = PAGE_MAP_PRESENT | PAGE_MAP_GLOBAL_PAGES;
+        if(section_header->sh_flags & SHF_WRITE)
+            flags |= PAGE_MAP_RW;
+        if(!(section_header->sh_flags & SHF_EXECINSTR))
+            flags |= PAGE_MAP_NX;
+        
+        kernel_protection_set_range(
+            section_header->sh_addr,
+            section_header->sh_addr + section_header->sh_size,
+            flags);
+    }
+}
+
+static void kernel_protection_set_range(uintptr_t base, uintptr_t bound,
+    pg_map_flags_t flags)
+{
+    page_table_t p4, p3, p2, p1;
+    page_table_entry_t entry;
+
+    entry.addr = (vm_addr_t)base;
+    p4 = (page_table_t)P2V(kernel_vmmap.page_dir);
+    if(NULL == p4) {
+        KPANIC("kernel_vmmap.page_dir == NULL");
+    }
+    
+    if(NULL == (void*)p4[entry.pml4e].addr) {
+        KPANIC("Base P3 not found looking for kernel pages");
+    }
+    p3 = (page_table_t)P2V(PAGING_GET_PHYSICAL_ADDRESS(p4[entry.pml4e]));
+
+    if(NULL == (void*)p3[entry.pdpe].addr) {
+        KPANIC("Base P2 not found looking for kernel pages");
+    }
+    p2 = (page_table_t)P2V(PAGING_GET_PHYSICAL_ADDRESS(p3[entry.pdpe]));
+
+    for(vm_addr_t page = base; page <= bound; page += PAGE_SIZE) {
+        entry.addr = page;
+        
+        // Should be safe to assume not needing to switch p4 entry
+        if(0 == entry.pdpe) {
+            if(NULL == (void*)p4[entry.pml4e].addr) {
+                KPANIC("P3 not found looking for kernel pages");
+            }
+            p3 = (page_table_t)P2V(PAGING_GET_PHYSICAL_ADDRESS(p4[entry.pml4e]));
+        }
+        if(0 == entry.pde) {
+            if(NULL == (void*)p3[entry.pdpe].addr) {
+                KPANIC("P2 not found looking for kernel pages");
+            }
+            p2 = (page_table_t)P2V(PAGING_GET_PHYSICAL_ADDRESS(p3[entry.pdpe]));
+        }
+
+        if(NULL == (void*)p2[entry.pde].addr) {
+            KPANIC("P1 not found looking for kernel pages");
+        }
+        p1 = (page_table_t)P2V(PAGING_GET_PHYSICAL_ADDRESS(p2[entry.pde]));
+        set_flags(&(p1[entry.pte]), flags);
+    }
 }
