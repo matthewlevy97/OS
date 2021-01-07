@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
-source $(dirname "$0")/setup_env.sh
+source $(dirname "$0")/../setup_env.sh
 
-seriallog="$(dirname "$0")/serial.log"
+seriallog="$(dirname "$0")/../serial.log"
 
 make -C src mkiso
 

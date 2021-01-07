@@ -6,7 +6,8 @@ LD:=$(TARGET)-ld
 AS:=$(TARGET)-as
 AR:=$(TARGET)-ar
 
-CFLAGS += -std=c11 -Wall -Wextra -pedantic -ffreestanding -nostdlib -I${SYSROOT}/usr/include/gcc
+CFLAGS += -std=c11 -ffreestanding -nostdlib
+CFLAGS += -Wall -Wextra -pedantic
 CPPFLAGS +=
 LDFLAGS +=
 ASFLAGS +=
