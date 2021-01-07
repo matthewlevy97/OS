@@ -11,7 +11,8 @@ extern void arch_dump_cpu_state();
         interrupt_disable();                                                   \
         klog("Kernel Panic!\n");                                               \
         klog("File: %s, Func: %s, Line: %d\n", __FILE__, __func__, __LINE__);  \
-        klog("Process PID: %d\n", process_this()->pid);                        \
+        if(process_this())                                                     \
+            klog("Process PID: %d\n", process_this()->pid);                    \
         klog(__VA_ARGS__);                                                     \
         arch_dump_cpu_state();                                                 \
         while(1);                                                              \

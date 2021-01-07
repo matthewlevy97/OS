@@ -15,33 +15,47 @@
 .global boot_gdt_ptr
 
 /*
-    Setup 4-tier paging and memory map first 2MB
+    Setup 4-tier paging
+    Maps first 2MB of ram into kernel entry
+    Maps first 1GB of ram into kernel physical mmap region
 */
 boot_p4:
     /* Identity map */
-    .quad offset V2P(boot_p3) + (PAGE_PRESENT | PAGE_WRITE)
-    .rept 255
+    .quad offset (boot_p3 - KERNEL_OFFSET) + (PAGE_PRESENT | PAGE_WRITE)
+    .rept (EARLY_BOOT_HIGHER_HALF_KERNEL_INDEX - 1)
         .quad 0
     .endr
     /* Map higher-half [Index: EARLY_BOOT_HIGHER_HALF_INDEX=256] */
-    .quad offset V2P(boot_p3) + (PAGE_PRESENT | PAGE_WRITE)
-    .rept PAGING_ENTRIES_PER_PT - (EARLY_BOOT_HIGHER_HALF_INDEX - 1) - 2
+    .quad offset (boot_p3 - KERNEL_OFFSET) + (PAGE_PRESENT | PAGE_WRITE)
+    .rept PAGING_ENTRIES_PER_PT - (EARLY_BOOT_HIGHER_HALF_KERNEL_INDEX - 1) - 2
         .quad 0
     .endr
+
 boot_p3:
-    .quad offset V2P(boot_p2) + (PAGE_PRESENT | PAGE_WRITE)
-    .rept PAGING_ENTRIES_PER_PT - 1
+    .quad offset (boot_p2 - KERNEL_OFFSET) + (PAGE_PRESENT | PAGE_WRITE)
+    .rept EARLY_BOOT_HIGHER_HALF_MMAP_INDEX_P3 - 1
+        .quad 0
+    .endr
+    .quad offset (identity_p2 - KERNEL_OFFSET) + (PAGE_PRESENT | PAGE_WRITE)
+    .rept PAGING_ENTRIES_PER_PT - EARLY_BOOT_HIGHER_HALF_MMAP_INDEX_P3 - 1
         .quad 0
     .endr
 boot_p2:
-    .quad offset V2P(boot_p1) + (PAGE_PRESENT | PAGE_WRITE)
+    .quad offset (boot_p1 - KERNEL_OFFSET) + (PAGE_PRESENT | PAGE_WRITE)
     .rept PAGING_ENTRIES_PER_PT - 1
         .quad 0
     .endr
 boot_p1:
     .set i, 0
-    .rept PAGING_ENTRIES_PER_PT - 1
+    .rept PAGING_ENTRIES_PER_PT
         .quad (i << 12) + (PAGE_PRESENT | PAGE_WRITE)
+        .set i, (i+1)
+    .endr
+
+identity_p2:
+    .set i, 0
+    .rept PAGING_ENTRIES_PER_PT
+        .quad (i << 21) + (PAGE_HUGE | PAGE_PRESENT | PAGE_WRITE)
         .set i, (i+1)
     .endr
 

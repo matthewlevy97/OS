@@ -28,7 +28,7 @@ _start:
     mov cr4, eax
 
     /* Load Page Table */
-    mov eax, offset V2P(boot_p4)
+    mov eax, offset (boot_p4 - KERNEL_OFFSET)
     mov cr3, eax
 
     /* Enable Long Mode */
@@ -44,8 +44,8 @@ _start:
     /* AMD64 instruction manual states next instruction MUST be a branch */
     jmp 1f
 1:
-    lgdt [V2P(boot_gdt_ptr)]
-    jmp 0x08:V2P(.long_mode_trampoline)
+    lgdt [(boot_gdt_ptr - KERNEL_OFFSET)]
+    jmp 0x08:(.long_mode_trampoline - KERNEL_OFFSET)
 
 .code64
 .long_mode_trampoline:
@@ -66,14 +66,11 @@ _start:
     /* Update multiboot pointer to higher-half mapping */
     mov rax, KERNEL_OFFSET
     add rsi, rax
-
-    /* Map 1GB physical memory to virtual */
-    call boot_update_paging_pae_enabled
     
     /* Remove identity mapping */
     xor rax, rax
     movabs [boot_p4], rax
-
+    
     /* Reload page table */
     mov rax, cr3
     mov cr3, rax
@@ -103,41 +100,6 @@ _start:
     cli
     hlt
     jmp $
-
-/*
-This maps 1GB of physical memory -> virtual memory starting at kernel base
-    Convert boot_p2 from pointing to 4KB PTEs -> 2MB PDE
-TODO: Convert boot_p1 -> 2MB PDE also
-
-Looks like it misses 1 2MB section
-Also, mapping is not full as it appears that some mapped memory is not being accessible
-*/
-boot_update_paging_pae_enabled:
-    /* Get P3 */
-    movabs rax, [boot_p4 + 8 * EARLY_BOOT_HIGHER_HALF_INDEX]
-    and rax, (~0xFFF)
-    
-    /* Get P2 */
-    mov rax, [rax]
-    and rax, (~0xFFF)
-
-    /* Fill with 2MB page table entries */
-    xor rcx, rcx
-1:
-    cmp rcx, (PAGING_ENTRIES_PER_PT)
-    jge 2f
-
-    mov rdx, rcx
-    shl rdx, 21
-    or  rdx, (PAGE_HUGE | PAGE_PRESENT | PAGE_WRITE)
-
-    mov [rax], rdx
-
-    add rax, 8
-    inc rcx
-    jmp 1b
-2:
-    ret
 
 .section .bss
 .align PAGE_SIZE

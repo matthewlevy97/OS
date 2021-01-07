@@ -21,7 +21,7 @@ include init/make.config
 include mm/make.config
 include process/make.config
 include vfs/make.config
-KERNEL_OBJS += $(SYSROOT)/usr/bin/libk.o
+KERNEL_OBJS += $(SYSROOT)/usr/lib/libk.o
 
 include drivers/make.config
 KERNEL_OBJS += $(PCI_OBJS)

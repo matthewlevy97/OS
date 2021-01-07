@@ -20,9 +20,9 @@ all: $(LIBK_BIN) $(LIBC_BIN)
 install: all install-binary install-headers
 
 install-binary:
-	@mkdir -p $(SYSROOT)/usr/bin
-	@cp -a $(LIBK_BIN) $(SYSROOT)/usr/bin
-	@cp -a $(LIBC_BIN) $(SYSROOT)/usr/bin
+	@mkdir -p $(SYSROOT)/usr/lib
+	@cp -a $(LIBK_BIN) $(SYSROOT)/usr/lib
+	@cp -a $(LIBC_BIN) $(SYSROOT)/usr/lib
 
 install-headers:
 	@mkdir -p $(SYSROOT)/usr/include/libc

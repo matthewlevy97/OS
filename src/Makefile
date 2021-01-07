@@ -6,7 +6,8 @@ LD:=$(TARGET)-ld
 AS:=$(TARGET)-as
 AR:=$(TARGET)-ar
 
-CFLAGS += -std=c11 -Wall -Wextra -pedantic -ffreestanding -nostdlib
+CFLAGS += -std=c11 -ffreestanding -nostdlib
+CFLAGS += -Wall -Wextra -pedantic
 CPPFLAGS +=
 LDFLAGS +=
 ASFLAGS +=
@@ -52,19 +53,32 @@ KERNEL_COMPILE_FLAGS:= \
 	KERNEL_LDFLAGS="$(KERNEL_LDFLAGS)" \
 	KERNEL_ASFLAGS="$(KERNEL_ASFLAGS)"
 
-.PHONY: all sysroot clean mkiso kernel libc
+.PHONY: all sysroot install-gcc-headers clean mkiso kernel libc
 
-all: sysroot libc kernel
+all: sysroot install-gcc-headers libc kernel
 
 sysroot:
-	mkdir -p $(SYSROOT)
+	mkdir -p ${SYSROOT}
+
+install-gcc-headers: sysroot
+	@echo "Installing GCC header files"
+	mkdir -p "${SYSROOT}/usr/include/gcc"
+	@for hfile in iso646.h stdarg.h stdbool.h stddef.h; do			\
+		hpath=$$(find $$GCC_INCLUDE_PATH -name $$hfile);		\
+		if [ ! -z $$hpath ]; then					\
+			cp "$$hpath" "${SYSROOT}/usr/include/gcc/$$hfile";	\
+		else								\
+			echo "$$hfile not found";				\
+			exit 1;							\
+		fi								\
+	done
 
 # Build libc and libk
-libc:
+libc: sysroot
 	$(MAKE) -C libc install $(COMPILE_FLAGS) $(KERNEL_COMPILE_FLAGS)
 
 # Build the kernel
-kernel:
+kernel: sysroot
 	$(MAKE) -C kernel install $(KERNEL_COMPILE_FLAGS)
 
 mkiso: all
